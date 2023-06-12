@@ -106,6 +106,8 @@ const complaintsForm = async (req, res) => {
 const markAttendance = async (req, res) => {
 
     const { rfidTag } = req.body
+
+    res.status(200).json({ message: "Attendance Marked" })
     console.log(rfidTag)
 
     try {

@@ -36,8 +36,11 @@ const {
 } = require("../controllers/userController");
 
 
+const studentRouter = express.Router();
+
 router.post("/login", loginUser);
 router.post("/generateToken", generateToken)
+studentRouter.post("/markAttendance", markAttendance)
 
 
 
@@ -49,11 +52,10 @@ router.use(authMiddleware);
 
 
 // STUDENT ROUTES
-const studentRouter = express.Router();
+
 // studentRouter.use(restrictToRole("S"));
 studentRouter.get("/viewattendance", viewAttendance);
 studentRouter.get("/courses/:username", getCourses);
-studentRouter.post("/markAttendance", markAttendance)
 studentRouter.post("/viewattendance", (req, res) => {
     res.json({ msg: "Attendance uploaded" });
 });
