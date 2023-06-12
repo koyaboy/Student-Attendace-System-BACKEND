@@ -12,19 +12,19 @@ const courseSchema = new mongoose.Schema({
 
     entryWindow1Start: {
         type: String,
-        required: true,
+        // required: true,
     },
     entryWindow1End: {
         type: String,
-        required: true,
+        // required: true,
     },
     entryWindow2Start: {
         type: String,
-        required: true,
+        // required: true,
     },
     entryWindow2End: {
         type: String,
-        required: true,
+        // required: true,
     },
 
 });

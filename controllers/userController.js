@@ -248,6 +248,7 @@ const createCourse = async (req, res) => {
             instructor: [instructor]
         })
 
+
         //Update Instructor Courses
 
         const Instructor = await User.findOne({ _id: { $in: instructor } })
