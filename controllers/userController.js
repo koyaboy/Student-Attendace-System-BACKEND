@@ -116,7 +116,9 @@ const markAttendance = async (req, res) => {
 
         // Get the current time
         const currentTime = new Date();
+
         const time = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+        const formattedDate = currentTime.toLocaleDateString();
 
         console.log(time);
 
@@ -147,7 +149,7 @@ const markAttendance = async (req, res) => {
         const attendance = new Attendance({
             username: student._id,
             course_id: course._id,
-            date: currentTime,
+            date: formattedDate,
             present: true,
         });
 
@@ -682,7 +684,7 @@ const setupAttendance = async (req, res) => {
         res.status(200).json(course)
 
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         res.status(500).json({ message: "Could not setup Attendance" })
     }
 }
