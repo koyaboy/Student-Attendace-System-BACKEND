@@ -114,29 +114,27 @@ const markAttendance = async (req, res) => {
             return res.status(404).json({ message: "Student not found" });
         }
 
-        res.status(200).json(student)
+        // Get the current time
+        const currentTime = new Date();
 
-        //     // Get the current time
-        //     const currentTime = new Date();
-
-        //     // Find the course with the given start and end time windows
-        //     const course = await Course.findOne({
-        //         $or: [
-        //             {
-        //                 entryWindow1Start: { $lte: currentTime },
-        //                 entryWindow1End: { $gte: currentTime },
-        //             },
-        //             {
-        //                 entryWindow2Start: { $lte: currentTime },
-        //                 entryWindow2End: { $gte: currentTime },
-        //             },
-        //         ],
-        //     });
+        // Find the course with the given start and end time windows
+        const course = await Course.findOne({
+            $or: [
+                {
+                    entryWindow1Start: { $lte: currentTime },
+                    entryWindow1End: { $gte: currentTime },
+                },
+                {
+                    entryWindow2Start: { $lte: currentTime },
+                    entryWindow2End: { $gte: currentTime },
+                },
+            ],
+        });
 
 
-        //     if (!course) {
-        //         return res.status(404).json({ message: "No active course found" });
-        //     }
+        if (!course) {
+            return res.status(404).json({ message: "No active course found" });
+        }
 
 
         //     // Checking if attendance count is 2 
@@ -150,9 +148,9 @@ const markAttendance = async (req, res) => {
         //         present: true,
         //     });
 
-        //     await attendance.save();
+        await attendance.save();
 
-        //     res.status(200).json({ message: "Attendance marked successfully" });
+        res.status(200).json({ message: "Attendance marked successfully" });
 
 
     } catch (error) {
