@@ -140,13 +140,13 @@ const markAttendance = async (req, res) => {
         //     // Checking if attendance count is 2 
 
 
-        //     // Mark Attendance and Update the attendance schema for the student in the course
-        //     const attendance = new Attendance({
-        //         username: student._id,
-        //         course_id: course._id,
-        //         date: currentTime,
-        //         present: true,
-        //     });
+        // Mark Attendance and Update the attendance schema for the student in the course
+        const attendance = new Attendance({
+            username: student._id,
+            course_id: course._id,
+            date: currentTime,
+            present: true,
+        });
 
         await attendance.save();
 
@@ -154,8 +154,8 @@ const markAttendance = async (req, res) => {
 
 
     } catch (error) {
-        //     console.log(error)
-        //     res.status(500).json({ message: "Failed to Mark Attendance" })
+        console.log(error)
+        res.status(500).json({ message: "Failed to Mark Attendance" })
     }
 }
 
