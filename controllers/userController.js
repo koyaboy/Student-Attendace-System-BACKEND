@@ -116,9 +116,9 @@ const markAttendance = async (req, res) => {
 
         // Get the current time
         const currentTime = new Date();
-        const time = currentTime.toLocaleTimeString();
+        const time = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
 
-        console.log(time)
+        console.log(time);
 
         // Find the course with the given start and end time windows
         const course = await Course.findOne({
