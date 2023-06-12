@@ -107,15 +107,14 @@ const markAttendance = async (req, res) => {
 
     const { rfidTag } = req.body
 
-    res.status(200).json({ message: "Attendance Marked" })
-    console.log(rfidTag)
-
     try {
-        //     const student = await User.findOne({ rfidTag })
+        const student = await User.findOne({ rfidTag })
 
-        //     if (!student) {
-        //         return res.status(404).json({ message: "Student not found" });
-        //     }
+        if (!student) {
+            return res.status(404).json({ message: "Student not found" });
+        }
+
+        res.status(200).json(student)
 
         //     // Get the current time
         //     const currentTime = new Date();
