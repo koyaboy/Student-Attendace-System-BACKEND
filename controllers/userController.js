@@ -116,17 +116,20 @@ const markAttendance = async (req, res) => {
 
         // Get the current time
         const currentTime = new Date();
+        const time = currentTime.toLocaleTimeString();
+
+        console.log(time)
 
         // Find the course with the given start and end time windows
         const course = await Course.findOne({
             $or: [
                 {
-                    entryWindow1Start: { $lte: currentTime },
-                    entryWindow1End: { $gte: currentTime },
+                    entryWindow1Start: { $lte: time },
+                    entryWindow1End: { $gte: time },
                 },
                 {
-                    entryWindow2Start: { $lte: currentTime },
-                    entryWindow2End: { $gte: currentTime },
+                    entryWindow2Start: { $lte: time },
+                    entryWindow2End: { $gte: time },
                 },
             ],
         });
