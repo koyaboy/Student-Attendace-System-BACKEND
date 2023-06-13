@@ -712,6 +712,24 @@ const getAttendance = async (req, res) => {
 
 }
 
+const uploadAttendance = async (req, res) => {
+    const { attendances, selectedCourse, formattedDate } = req.body
+
+    try {
+        await Attendance.deleteMany({
+            course: selelctedCourse,
+            date: formattedDate
+        })
+
+        await Attendance.insertMany(attendances)
+
+        res.status(200).json({ message: "Attendance uploaded successfully" })
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Failed to upload Attendance" })
+    }
+}
+
 module.exports = {
     generateToken,
     loginUser,
@@ -739,7 +757,8 @@ module.exports = {
     deleteComplaint,
     getTeacherCourses,
     setupAttendance,
-    getAttendance
+    getAttendance,
+    uploadAttendance
 }
 
 //6472269d27849edf3ecbe348 (csc 424)
