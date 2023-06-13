@@ -32,7 +32,8 @@ const {
     deleteComplaint,
     getTeacherCourses,
     setupAttendance,
-    getAttendance
+    getAttendance,
+    uploadAttendance
 } = require("../controllers/userController");
 
 
@@ -84,12 +85,14 @@ adminRouter.delete("/deleteComplaint/:complaintId/:actionBy", deleteComplaint);
 
 const teacherRouter = express.Router()
 teacherRouter.get("/getTeacherCourses/:username", getTeacherCourses);
-teacherRouter.put("/setupAttendance", setupAttendance);
 teacherRouter.get("/getAttendance/:courseId/:date", getAttendance);
+teacherRouter.post("/uploadAttendance", uploadAttendance)
+teacherRouter.put("/setupAttendance", setupAttendance);
 
 // Register the student, admin and teacher routers
 router.use("/", studentRouter);
 router.use("/admin", adminRouter);
 router.use("/teacher", teacherRouter);
+
 
 module.exports = router;
