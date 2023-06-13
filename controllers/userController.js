@@ -716,10 +716,14 @@ const uploadAttendance = async (req, res) => {
     const { attendances, selectedCourse, formattedDate } = req.body
 
     try {
-        await Attendance.deleteMany({
-            course: selelctedCourse,
+        const deletedAttendance = await Attendance.deleteMany({
+            course: selectedCourse,
             date: formattedDate
         })
+
+        if (!deletedAttendance) {
+            res.status(404).json({ message: "Attendance Not Found" })
+        }
 
         await Attendance.insertMany(attendances)
 
