@@ -715,6 +715,7 @@ const getAttendance = async (req, res) => {
 const uploadAttendance = async (req, res) => {
     const { attendances, selectedCourse, formattedDate } = req.body
 
+    console.log(selectedCourse)
     try {
         const deletedAttendance = await Attendance.deleteMany({
             course: selectedCourse,
