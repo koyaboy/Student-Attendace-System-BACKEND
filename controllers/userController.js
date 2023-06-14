@@ -468,9 +468,20 @@ const updateCourse = async (req, res) => {
             return res.status(404).json({ message: "Instructor not found" });
         }
 
-        Instructor.courses.push(course._id)
-        await Instructor.save()
+        // Instructor.courses.push(course._id)
+        // await Instructor.save()
+        let courseExists = false;
+        for (const instructorCourse of Instructor.courses) {
+            if (instructorCourse._id === courseId) {
+                courseExists = true;
+                break;
+            }
+        }
 
+        if (!courseExists) {
+            Instructor.courses.push(course._id);
+            await Instructor.save();
+        }
         //Update Activity table
         const activity = await Activity.create({
             timestamp: Date.now(),
