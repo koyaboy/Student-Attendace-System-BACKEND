@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongodb');
 const User = require("../models/userModel")
 const Attendance = require("../models/Attendance")
 const Course = require("../models/Course")
@@ -242,6 +243,8 @@ const createCourse = async (req, res) => {
     try {
         const { department, title, code, description, instructor, actionBy } = req.body
 
+        console.log(instructor)
+
         const course = await Course.create({
             department,
             title,
@@ -277,6 +280,61 @@ const createCourse = async (req, res) => {
     }
 }
 
+
+const addTeacher = async (req, res) => {
+    try {
+        const { title, firstname, lastname, username, password, department, role, actionBy, coursesTaught } = req.body;
+
+        console.log(coursesTaught)
+
+        const exists = await User.findOne({ username });
+
+        if (exists) {
+            throw Error("Username already in use");
+        }
+
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+
+        const teacher = await User.create({
+            title,
+            firstname,
+            lastname,
+            username,
+            password: hash,
+            department,
+            role,
+            courses: coursesTaught, // Assign the selected courses to the teacher
+        });
+
+        //Update Instructor field in Course Table
+        const courseIds = coursesTaught.map(courseId => new ObjectId(courseId));
+        const courses = await Course.find({ _id: { $in: courseIds } });
+        if (!courses) {
+            res.status(404).json({ message: "Course Not Found" })
+        }
+
+        courses.forEach(async course => {
+            {
+                course.instructor.push(teacher._id)
+                await course.save();
+            }
+        })
+
+        const activity = await Activity.create({
+            timestamp: Date.now(),
+            action: `Teacher ${title}. ${firstname} ${lastname} created Successfully`,
+            actionBy,
+        });
+
+        res.status(200).json(teacher);
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Failed to create Teacher" });
+    }
+};
+
+
 const adminGetCourses = async (req, res) => {
     try {
         const courses = await Course.find({}).populate("instructor")
@@ -307,48 +365,6 @@ const adminGetTeachers = async (req, res) => {
         res.status(500).json({ message: 'Failed to retrieve Teachers' });
     }
 }
-
-const addTeacher = async (req, res) => {
-    try {
-        const { title, firstname, lastname, username, password, department, role, actionBy, coursesTaught } = req.body;
-
-        const exists = await User.findOne({ username });
-
-        if (exists) {
-            throw Error("Username already in use");
-        }
-
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(password, salt);
-
-        const teacher = await User.create({
-            title,
-            firstname,
-            lastname,
-            username,
-            password: hash,
-            department,
-            role,
-            courses: coursesTaught, // Assign the selected courses to the teacher
-        });
-
-        //Update Instructor field in Course Table
-        const course = await Course.findOne({ _id: { $in: coursesTaught.map(course => course._id) } });
-
-
-
-        const activity = await Activity.create({
-            timestamp: Date.now(),
-            action: `Teacher ${title}. ${firstname} ${lastname} created Successfully`,
-            actionBy,
-        });
-
-        res.status(200).json(teacher);
-    } catch (error) {
-        console.log(error);
-        res.status(500).json({ message: "Failed to create Teacher" });
-    }
-};
 
 
 const getActivity = async (req, res) => {
@@ -432,10 +448,28 @@ const updateCourse = async (req, res) => {
         course.department = department;
         course.code = code;
         course.description = description;
-        course.instructor = instructor;
 
-        //Save the Updated course
+        // Remove previous instructor from the course
+        const previousInstructor = course.instructor[0];
+        const previousTeacher = await User.findById(previousInstructor);
+        if (previousTeacher) {
+            previousTeacher.courses.pull(courseId);
+            await previousTeacher.save();
+        }
+
+        // Update new instructor for the course
+        course.instructor = [instructor];
         await course.save();
+
+        //Update Instructor Courses
+
+        const Instructor = await User.findOne({ _id: { $in: instructor } })
+        if (!Instructor) {
+            return res.status(404).json({ message: "Instructor not found" });
+        }
+
+        Instructor.courses.push(course._id)
+        await Instructor.save()
 
         //Update Activity table
         const activity = await Activity.create({
@@ -475,10 +509,31 @@ const updateTeacher = async (req, res) => {
         teacher.password = hash
         teacher.department = department
         teacher.role = role
-        teacher.courses = coursesTaught
 
-        //Save Updated teacher
-        teacher.save()
+        // Remove previous courses from the teacher
+        const previousCourses = teacher.courses;
+        teacher.courses = [];
+        await teacher.save();
+
+        // Update new courses for the teacher
+        teacher.courses = coursesTaught;
+        await teacher.save();
+
+        // Remove teacher from previous courses
+        const previousCoursesIds = previousCourses.map(courseId => new ObjectId(courseId));
+
+        await Course.updateMany(
+            { _id: { $in: previousCoursesIds } },
+            { $pull: { instructor: teacherId } }
+        )
+
+        // Update teacher for the new courses
+        const courseIds = coursesTaught.map(courseId => new ObjectId(courseId));
+        await Course.updateMany(
+            { _id: { $in: courseIds } },
+            { $addToSet: { instructor: teacherId } }
+        );
+
 
         //Update Activity table
         const activity = await Activity.create({
