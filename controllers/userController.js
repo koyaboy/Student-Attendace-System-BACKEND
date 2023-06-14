@@ -715,15 +715,14 @@ const getAttendance = async (req, res) => {
 const uploadAttendance = async (req, res) => {
     const { attendances, selectedCourse, formattedDate } = req.body
 
-    console.log(selectedCourse)
     try {
         const deletedAttendance = await Attendance.deleteMany({
-            course: selectedCourse,
+            course_id: selectedCourse,
             date: formattedDate
         })
 
-        if (!deletedAttendance) {
-            res.status(404).json({ message: "Attendance Not Found" })
+        if (deletedAttendance.deletedCount === 0) {
+            return res.status(404).json({ message: "Attendance Not Found" })
         }
 
         await Attendance.insertMany(attendances)
@@ -734,6 +733,7 @@ const uploadAttendance = async (req, res) => {
         res.status(500).json({ message: "Failed to upload Attendance" })
     }
 }
+
 
 module.exports = {
     generateToken,
