@@ -55,11 +55,8 @@ router.use(authMiddleware);
 
 const studentRouter = express.Router();
 // studentRouter.use(restrictToRole("S"));
-studentRouter.get("/viewattendance", viewAttendance);
+studentRouter.get("/viewattendance/:studentUsername/:courseId", viewAttendance);
 studentRouter.get("/courses/:username", getCourses);
-studentRouter.post("/viewattendance", (req, res) => {
-    res.json({ msg: "Attendance uploaded" });
-});
 studentRouter.post("/complaintsform/:username", complaintsForm);
 
 // ADMIN ROUTES

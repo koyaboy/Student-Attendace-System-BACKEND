@@ -59,22 +59,23 @@ const loginUser = async (req, res) => {
 //view attendance
 const viewAttendance = async (req, res) => {
     try {
-        const { username, courseId } = req.params
+        const { studentUsername, courseId } = req.params
 
         //Retrieve the User document based on the username
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ username: studentUsername });
 
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
 
         const attendanceData = await Attendance.find({
-            username: user.username,
+            username: user._id,
             course_id: courseId
         });
 
         res.status(200).json(attendanceData);
     } catch (error) {
+        console.log(error)
         res.status(500).json({ msg: "Failed to Fetch attendance" })
     }
 }
@@ -190,9 +191,6 @@ const getCourses = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
-
-
-
 
 
 //ADMIN
@@ -396,7 +394,7 @@ const getComplaintsData = async (req, res) => {
 
 const updateStudent = async (req, res) => {
     try {
-        const { id, firstname, lastname, username, password, level, department, role, rfidTag, actionBy } = req.body
+        const { id, firstname, lastname, username, password, level, department, courses, role, rfidTag, actionBy } = req.body
         const student = await User.findById(id)
 
         if (!student) {
@@ -412,6 +410,7 @@ const updateStudent = async (req, res) => {
         student.password = hash;
         student.level = level;
         student.department = department;
+        student.courses = courses;
         student.role = role;
         student.rfidTag = rfidTag;
 
