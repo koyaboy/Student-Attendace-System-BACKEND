@@ -22,6 +22,11 @@ const attendanceSchema = new Schema({
     present: {
         type: Boolean,
         default: true
+    },
+
+    verified: {
+        type: Boolean,
+        default: false
     }
 });
 

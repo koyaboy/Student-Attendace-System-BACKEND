@@ -20,7 +20,11 @@ const complaintsSchema = new Schema({
         type: String
     },
 
-    isCompleted: { type: Boolean, default: false }
+    isCompleted: { type: Boolean, default: false },
+
+    photoUrl: {
+        type: String,
+    }
 });
 
 module.exports = mongoose.model("Complaints", complaintsSchema)

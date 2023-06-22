@@ -6,6 +6,11 @@ const Complaints = require("../models/Complaints")
 const Activity = require("../models/Activity")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const cloudinary = require("../cloudinary")
+const fs = require('fs');
+const path = require('path');
+
+
 
 const createToken = (_id) => {
     return jwt.sign({ _id }, process.env.SECRET, { expiresIn: "3d" })
@@ -81,29 +86,40 @@ const viewAttendance = async (req, res) => {
 }
 
 const complaintsForm = async (req, res) => {
-
-    const { username } = req.params
-    const { selectedCourse, dateMissed, reason, isCompleted } = req.body
-
-    const newComplaint = {
-        username,
-        selectedCourse: selectedCourse,
-        dateMissed: dateMissed,
-        reason: reason,
-        isCompleted
-    }
-
     try {
-        const complaint = await Complaints.create(newComplaint)
-        res.status(200).json({ message: complaint })
+        const { username, selectedCourse, dateMissed, reason, isCompleted } = req.body;
+
+        const photoData = req.file;
+        let url = ""
+        console.log(photoData)
+        if (photoData) {
+            const uploader = async (path) => await cloudinary.uploads(path, "images");
+            const { path } = photoData;
+            const newPath = await uploader(path);
+            url = newPath;
+            fs.unlinkSync(path);
+        }
+
+
+        // Create your complaint object and assign the photo
+        const complaint = await Complaints.create({
+            username,
+            selectedCourse,
+            dateMissed,
+            reason,
+            isCompleted,
+            photoUrl: url.url
+        });
+
+        res.status(201).json(complaint);
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: "An error occurred" })
+        res.status(500).json({ error: "Server error" });
     }
+};
 
 
 
-}
 
 const markAttendance = async (req, res) => {
 
@@ -124,42 +140,78 @@ const markAttendance = async (req, res) => {
 
         console.log(time);
 
-        // Find the course with the given start and end time windows
-        const course = await Course.findOne({
-            $or: [
-                {
-                    entryWindow1Start: { $lte: time },
-                    entryWindow1End: { $gte: time },
-                },
-                {
-                    entryWindow2Start: { $lte: time },
-                    entryWindow2End: { $gte: time },
-                },
-            ],
-        });
 
+        // Find the course within the first window
+        const course = await Course.findOne(
+            $or
+            [
+            {
+                entryWindow1Start: { $lte: time },
+                entryWindow1End: { $gte: time },
+            },
+            {
+                entryWindow2Start: { $lte: time },
+                entryWindow2End: { $gte: time }
+            }
+            ]
+        );
 
         if (!course) {
             return res.status(404).json({ message: "No active course found" });
         }
 
-
-        //     // Checking if attendance count is 2 
-
-
-        // Mark Attendance and Update the attendance schema for the student in the course
-        const attendance = new Attendance({
+        // Check if there is an existing attendance already in the first window
+        const existingAttendance = await Attendance.findOne({
             username: student._id,
-            course_id: course._id,
+            course: course._id,
             date: formattedDate,
             present: true,
-        });
+            verified: false
+        })
 
-        await attendance.save();
+        if (existingAttendance) {
+            const secondWindow = await Course.findOne({
+                entryWindow2Start: { $lte: time },
+                entryWindow2End: { $gte: time },
+            })
 
-        res.status(200).json({ message: "Attendance marked successfully" });
+            if (!secondWindow) {
+                return res.status(404).json({ message: "No active course found in second window" });
+            }
+
+            else if (secondWindow) {
+
+                existingAttendance.verified = true;
+                await existingAttendance.save()
+
+                return res.status(200).json({ message: "Attendance Marked Successfully in Second Window" })
+            }
+        }
 
 
+        if (!existingAttendance) {
+            const firstWindow = await Course.findOne({
+                entryWindow1Start: { $lte: time },
+                entryWindow1End: { $gte: time }
+            })
+
+            if (!firstWindow) {
+                return res.status(404).json({ message: "No active course found" });
+            }
+
+            // Mark Attendance in FirstWindow
+            const firstWindowAttendance = new Attendance({
+                username: student._id,
+                course_id: course._id,
+                date: formattedDate,
+                present: true,
+                verified: false
+            });
+
+            await firstWindowAttendance.save()
+
+            return res.status(200).json({ message: "Attendance Marked Successfully in First Window" });
+        }
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Failed to Mark Attendance" })
@@ -227,15 +279,33 @@ const addStudent = async (req, res) => {
 }
 
 const getComplaints = async (req, res) => {
-
     try {
-        const complaints = await Complaints.find({}).populate("selectedCourse")
-        res.status(200).json(complaints)
+        const complaints = await Complaints.find({});
+
+        // Convert the photo data to base64 and URL-encode it
+        const complaintsWithBase64 = complaints.map((complaint) => {
+            if (complaint.photo && complaint.photo.data) {
+                const base64 = complaint.photo.data.toString("base64");
+                const urlEncodedBase64 = encodeURIComponent(base64);
+                return {
+                    ...complaint.toObject(),
+                    photo: {
+                        ...complaint.photo,
+                        data: urlEncodedBase64,
+                    },
+                };
+            }
+            return complaint;
+        });
+
+        res.status(200).json(complaintsWithBase64);
     } catch (error) {
-        console.log(error)
-        res.status(500).json({ message: 'Failed to retrieve complaints' });
+        console.log(error);
+        res.status(500).json({ message: "Failed to retrieve complaints" });
     }
-}
+};
+
+
 
 const createCourse = async (req, res) => {
     try {
