@@ -205,6 +205,10 @@ const markAttendance = async (req, res) => {
                 existingAttendance.verified = true;
                 await existingAttendance.save()
 
+                //Save attendance for student in user table
+                student.attendance.push(existingAttendance._id)
+                await student.save()
+
                 return res.status(200).json({ message: "Attendance Marked Successfully in Second Window" })
             }
         }
@@ -826,7 +830,6 @@ const setupAttendance = async (req, res) => {
         }
 
 
-
         course.date = date;
         course.startTime = startTime.toLocaleString();
         course.endTime = endTime.toLocaleString();
@@ -836,9 +839,20 @@ const setupAttendance = async (req, res) => {
         course.entryWindow2End = attendance2End;
 
         await course.save();
-
         res.status(200).json(course)
 
+        // Give Everybody zero attendance
+        // const students = User.find({ role: "S" })
+
+        // students.forEach(async (student) => {
+        //     student.attendance = await Attendance.create({
+        //         username: student._id,
+        //         course_id: course._id,
+        //         date: date,
+        //         present: false,
+        //         verified: false
+        //     })
+        // })
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Could not setup Attendance" })
