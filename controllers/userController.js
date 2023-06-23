@@ -202,9 +202,18 @@ const markAttendance = async (req, res) => {
             }
 
             else if (secondWindow) {
-
                 existingAttendance.verified = true;
                 await existingAttendance.save()
+
+                //Clear attendance windows
+                course.startTime = ""
+                course.endTime = ""
+                course.entryWindow1Start = ""
+                course.entryWindow1End = ""
+                course.entryWindow2Start = ""
+                course.entryWindow2End = ""
+
+                await course.save()
 
                 return res.status(200).json({ message: "Attendance Marked Successfully in Second Window" })
             }
