@@ -842,17 +842,21 @@ const setupAttendance = async (req, res) => {
         res.status(200).json(course)
 
         // Give Everybody zero attendance
-        // const students = User.find({ role: "S" })
+        const students = await User.find({ role: "S", courses: { $in: [course._id] } });
 
-        // students.forEach(async (student) => {
-        //     student.attendance = await Attendance.create({
-        //         username: student._id,
-        //         course_id: course._id,
-        //         date: date,
-        //         present: false,
-        //         verified: false
-        //     })
-        // })
+        students.forEach(async (student) => {
+            const attendance = await Attendance.create({
+                username: student._id,
+                course_id: course._id,
+                date: date,
+                present: false,
+                verified: false
+            })
+            student.attendance.push(attendance._id)
+            await student.save()
+        })
+
+        console.log(students)
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Could not setup Attendance" })
