@@ -178,7 +178,7 @@ const markAttendance = async (req, res) => {
 
         console.log(course)
 
-        if (!course) {
+        if (course === null) {
             return res.status(404).json({ message: "No active course found" });
         }
 
