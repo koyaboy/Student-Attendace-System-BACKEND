@@ -119,7 +119,26 @@ const complaintsForm = async (req, res) => {
 };
 
 
+const registerCourses = async (req, res) => {
+    const { registeredCourses } = req.body
+    const { username } = req.params
+    try {
+        const student = await User.findOne({ username })
 
+        if (!student) {
+            res.status(404).json({ message: "Student not found" })
+        }
+
+        student.courses = registeredCourses
+        await student.save();
+
+        res.status(200).json({ message: "Courses Successfully Registered" })
+
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Failed to register courses" })
+    }
+}
 
 const markAttendance = async (req, res) => {
 
@@ -250,7 +269,7 @@ const getCourses = async (req, res) => {
 const addStudent = async (req, res) => {
 
     try {
-        const { firstname, lastname, username, password, department, role, level, courses, rfidTag, actionBy } = req.body
+        const { firstname, lastname, username, password, department, role, level, rfidTag, actionBy } = req.body
 
         const exists = await User.findOne({ username })
 
@@ -261,7 +280,7 @@ const addStudent = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         const hash = await bcrypt.hash(password, salt)
 
-        const student = await User.create({ firstname, lastname, username, password: hash, department, courses, rfidTag, level, role })
+        const student = await User.create({ firstname, lastname, username, password: hash, department, rfidTag, level, role })
 
         //Update Activity Table
         const activity = await Activity.create({
@@ -464,7 +483,7 @@ const getComplaintsData = async (req, res) => {
 
 const updateStudent = async (req, res) => {
     try {
-        const { id, firstname, lastname, username, password, level, department, courses, role, rfidTag, actionBy } = req.body
+        const { id, firstname, lastname, username, password, level, department, role, rfidTag, actionBy } = req.body
         const student = await User.findById(id)
 
         if (!student) {
@@ -480,7 +499,7 @@ const updateStudent = async (req, res) => {
         student.password = hash;
         student.level = level;
         student.department = department;
-        student.courses = courses;
+        // student.courses = courses;
         student.role = role;
         student.rfidTag = rfidTag;
 
@@ -875,6 +894,7 @@ module.exports = {
     loginUser,
     viewAttendance,
     complaintsForm,
+    registerCourses,
     markAttendance,
     addStudent,
     getCourses,
