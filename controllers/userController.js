@@ -87,7 +87,9 @@ const viewAttendance = async (req, res) => {
 
 const complaintsForm = async (req, res) => {
     try {
-        const { username, selectedCourse, dateMissed, reason, isCompleted } = req.body;
+        const { selectedCourse, dateMissed, reason, isCompleted } = req.body;
+
+        const { username } = req.params;
 
         const photoData = req.file;
         let url = ""
@@ -161,19 +163,19 @@ const markAttendance = async (req, res) => {
 
 
         // Find the course within the first window
-        const course = await Course.findOne(
-            $or
-            [
-            {
-                entryWindow1Start: { $lte: time },
-                entryWindow1End: { $gte: time },
-            },
-            {
-                entryWindow2Start: { $lte: time },
-                entryWindow2End: { $gte: time }
-            }
+        const course = await Course.findOne({
+            $or: [
+                {
+                    entryWindow1Start: { $lte: time },
+                    entryWindow1End: { $gte: time }
+                },
+                {
+                    entryWindow2Start: { $lte: time },
+                    entryWindow2End: { $gte: time }
+                }
             ]
-        );
+        });
+
 
         if (!course) {
             return res.status(404).json({ message: "No active course found" });
