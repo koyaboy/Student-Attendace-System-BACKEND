@@ -178,14 +178,14 @@ const markAttendance = async (req, res) => {
 
         console.log(course)
 
-        if (course === null) {
+        if (!course) {
             return res.status(404).json({ message: "No active course found" });
         }
 
         // Check if there is an existing attendance already in the first window
         const existingAttendance = await Attendance.findOne({
             username: student._id,
-            course: course._id,
+            course_id: course._id,
             date: formattedDate,
             present: true,
             verified: false
@@ -218,7 +218,7 @@ const markAttendance = async (req, res) => {
             })
 
             if (!firstWindow) {
-                return res.status(404).json({ message: "No active course found" });
+                return res.status(404).json({ message: "No active course found in first window" });
             }
 
             // Mark Attendance in FirstWindow
