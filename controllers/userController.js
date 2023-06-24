@@ -223,62 +223,6 @@ const markAttendance = async (req, res) => {
 
             res.status(200).json({ message: "Attendance Marked Successfully In Second Window" })
         }
-
-        // // Check if there is an existing attendance already in the first window
-        // const existingAttendance = await Attendance.findOne({
-        //     username: student._id,
-        //     course_id: course._id,
-        //     date: formattedDate,
-        //     present: true,
-        //     verified: false
-        // })
-
-        // if (existingAttendance) {
-        //     const secondWindow = await Course.findOne({
-        //         entryWindow2Start: { $lte: time },
-        //         entryWindow2End: { $gte: time },
-        //     })
-
-        //     if (!secondWindow) {
-        //         return res.status(404).json({ message: "No active course found in second window" });
-        //     }
-
-        //     else if (secondWindow) {
-        //         existingAttendance.verified = true;
-        //         await existingAttendance.save()
-
-        //         //Save attendance for student in user table
-        //         student.attendance.push(existingAttendance._id)
-        //         await student.save()
-
-        //         return res.status(200).json({ message: "Attendance Marked Successfully in Second Window" })
-        //     }
-        // }
-
-
-        // if (!existingAttendance) {
-        //     const firstWindow = await Course.findOne({
-        //         entryWindow1Start: { $lte: time },
-        //         entryWindow1End: { $gte: time }
-        //     })
-
-        //     if (!firstWindow) {
-        //         return res.status(404).json({ message: "No active course found in first window" });
-        //     }
-
-        //     // Mark Attendance in FirstWindow
-        //     const firstWindowAttendance = new Attendance({
-        //         username: student._id,
-        //         course_id: course._id,
-        //         date: formattedDate,
-        //         present: true,
-        //         verified: false
-        //     });
-
-        //     await firstWindowAttendance.save()
-
-        //     return res.status(200).json({ message: "Attendance Marked Successfully in First Window" });
-        // }
     } catch (error) {
         console.log(error)
         res.status(500).json({ message: "Failed to Mark Attendance" })
