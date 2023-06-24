@@ -201,6 +201,7 @@ const markAttendance = async (req, res) => {
         })
 
         if (firstWindow) {
+            console.log("FIRST WINDOWWWW active")
             attendance.present = true;
             await attendance.save()
 
@@ -208,6 +209,7 @@ const markAttendance = async (req, res) => {
         }
 
         if (secondWindow) {
+            console.log("SECOND WINDOW active")
             attendance.verified = true;
             await attendance.save();
 
