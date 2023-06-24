@@ -210,8 +210,16 @@ const markAttendance = async (req, res) => {
 
         if (secondWindow) {
             console.log("SECOND WINDOW active")
-            attendance.verified = true;
-            await attendance.save();
+
+            const firstWindowAttendance = await Attendance.findOne({
+                username: student._id,
+                course_id: course._id,
+                date: formattedDate,
+                present: true,
+                verified: false
+            })
+            firstWindowAttendance.verified = true;
+            await firstWindowAttendance.save();
 
             res.status(200).json({ message: "Attendance Marked Successfully In Second Window" })
         }
