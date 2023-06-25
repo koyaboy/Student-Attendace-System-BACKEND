@@ -3,8 +3,24 @@ const express = require("express");
 const authMiddleware = require("../middleware/authMiddleware");
 const restrictToRole = require("../middleware/restrictToRole");
 
+
 const router = express.Router();
 
+const multer = require('multer');
+
+// Set up Multer storage
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/'); // Specify the destination folder for uploaded files
+    },
+    filename: (req, file, cb) => {
+        const uniquePrefix = Date.now() + '-';
+        cb(null, uniquePrefix + file.originalname); // Set a unique filename for the uploaded file
+    },
+});
+
+// Create the Multer instance
+const upload = multer({ storage: storage });
 
 // Controller functions
 const {
@@ -45,7 +61,6 @@ router.post("/generateToken", generateToken)
 router.post("/markAttendance", markAttendance)
 
 
-
 // Middleware
 router.use(authMiddleware);
 
@@ -60,7 +75,9 @@ const studentRouter = express.Router();
 studentRouter.get("/viewattendance/:studentUsername/:courseId", viewAttendance);
 studentRouter.get("/courses/:username", getCourses);
 studentRouter.get("/getCourses", adminGetCourses);
-studentRouter.post("/complaintsform/:username", complaintsForm);
+
+studentRouter.post("/complaintsform/:username", upload.single("photo"), complaintsForm);
+
 studentRouter.post("/registerCourses/:username", registerCourses)
 // ADMIN ROUTES
 const adminRouter = express.Router();

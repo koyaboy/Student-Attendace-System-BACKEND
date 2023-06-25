@@ -11,7 +11,6 @@ const fs = require('fs');
 const path = require('path');
 
 
-
 const createToken = (_id) => {
     return jwt.sign({ _id }, process.env.SECRET, { expiresIn: "3d" })
 }
@@ -92,8 +91,10 @@ const complaintsForm = async (req, res) => {
         const { username } = req.params;
 
         const photoData = req.file;
+
         let url = ""
         console.log(photoData)
+
         if (photoData) {
             const uploader = async (path) => await cloudinary.uploads(path, "images");
             const { path } = photoData;
